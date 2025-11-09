@@ -1,0 +1,54 @@
+select *
+from dbo.Hospital_Dataset
+
+-- this query retrives a list of unique hospital name from the hospital_dataset table
+select distinct hospital_name
+from dbo.Hospital_Dataset
+
+--this query calculates the average number of admissions per year for the years 2020 to 2024
+--by grouping the data by year and sorting result by the year
+select year (admission_date) as year, avg(admission_count) as avg_admission
+from dbo.Hospital_Dataset
+where year (admission_date) between 2020 and 2024
+group by year (admission_date)
+order by year 
+
+
+--this query finds the hospital with the highest number of admissions,it first count the num of admission
+--per hospital,then select the top hospital with highest count
+select top 1 hospital_name, admission_count
+from 
+(
+select hospital_name, count(*) as admission_count
+from dbo.Hospital_Dataset
+group by hospital_name
+) as t
+order by admission_count desc ;
+
+--this query finds the hospital with the highest number of admissions,it first count the num of admission
+--per hospital,then select the low hospital with lowest count
+select top 1 hospital_name, admission_count
+from 
+(
+select hospital_name, count(*) as admission_count
+from dbo.Hospital_Dataset
+group by hospital_name
+) as t
+order by admission_count asc ;
+
+ --this query analyse the admission count to the hospital  by condition type
+select condition_type, sum(admission_count) as total_admission
+from dbo.Hospital_Dataset
+group by condition_type
+order by total_admission desc
+
+--this query analysis hospital admissions by condition typr,age group,and gender and sorts this result
+--by condition and total admissions
+select 
+condition_type,
+patient_age_group,
+patient_gender,
+sum(admission_count) as total_admission
+from dbo.Hospital_Dataset
+group by condition_type,patient_age_group,patient_gender
+order by condition_type,total_admission desc ;
