@@ -1,0 +1,37 @@
+select *
+from dbo.['Uber Request Data$']
+
+--this query to delete null from driver_id
+delete from dbo.['Uber Request Data$']
+where [Driver id] is null
+
+--this query to calculate total request of pickup point
+select  [pickup point], count ([Request id]) as [total request]
+from dbo.['Uber Request Data$']
+group by [pickup point]
+order by [total request] desc;
+
+--this query to calculate trip count by status
+select [status], count (*) as [trip count]
+from dbo.['Uber Request Data$']
+where [status] in ('trip completed', 'cancelled')
+group by [status]
+;
+
+--this query to calculate tripduration by minute
+select datediff (minute, [Request timestamp], [Drop timestamp]) as tripduration_minute  
+from dbo.['Uber Request Data$']
+where isdate([Request timestamp]) = 1 and isdate([Drop timestamp]) =1;
+
+--this query to calculate peak hour for tripduration per day
+select datepart (HOUR, [Request timestamp]) as tripduration_minute  
+from dbo.['Uber Request Data$']
+where isdate([Request timestamp]) = 1 ;
+
+--this query to replace 'na' in drop timesatmp column by null
+update dbo.['Uber Request Data$']
+set [Drop timestamp] = null
+where [Drop timestamp] in ('na')
+
+
+
