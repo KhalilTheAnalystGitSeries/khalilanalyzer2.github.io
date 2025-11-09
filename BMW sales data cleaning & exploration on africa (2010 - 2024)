@@ -1,0 +1,86 @@
+select *
+from dbo.[BMW sales data (2010-2024) ]
+
+--delete not important column
+alter table dbo.[BMW sales data (2010-2024) ]
+drop column mileage_km ;
+
+--select  distinct model
+--from dbo.[BMW sales data (2010-2024) ];
+
+-- select distinct year 
+-- from dbo.[BMW sales data (2010-2024) ];
+
+ -- select distinct region 
+--  from dbo.[BMW sales data (2010-2024) ];
+
+
+ -- select distinct color as uniqueColors
+--from dbo.[BMW sales data (2010-2024) ];
+
+--this query summarize total  BMW cars sales in africa by model from 2010 to 2024
+
+with AfricaSales as 
+(
+select year,model, sum(sales_volume) as totalsales
+from dbo.[BMW sales data (2010-2024) ]
+where region = 'africa' and year between 2010 and 2024
+group by year,model
+),
+rankedmodels as 
+(
+select *,
+rank () over (partition by year order by totalsales desc) as modelrank
+from africasales
+)
+select year,model, totalsales
+from rankedmodels
+where modelrank =1
+order by year;
+
+-- this query analyze car sales in africa region from 2010 to 2024 to identfiy top and bottom
+--performance by class,model,dolor,fueltype,transmission and engine size
+with ranked_sales as
+(
+select year,model,color,fuel_type,transmission,engine_size_l ,sum(sales_volume) as totalsales,
+rank() over(partition by year order by sum(sales_volume) desc) as rank_desc,
+rank() over(partition by year order by sum(sales_volume) asc) as rank_asc
+from dbo.[BMW sales data (2010-2024) ]
+where region = 'africa' and year between 2010 and 2024
+group by year,model,color, fuel_type,transmission,engine_size_l
+)
+select 
+year,model,color,fuel_type,transmission,engine_size_l, 
+case
+when rank_desc =1 then 'high'
+when rank_asc = 1 then 'low'
+end as sales_classification
+from
+ranked_sales
+where rank_desc=1 or rank_asc =1
+order by year asc;
+
+
+--this query determie the most and least expensive BMW car in africa region
+
+with mostexp as
+(
+select top 1
+'most expensive' as category,
+year,model,price_usd
+from dbo.[BMW sales data (2010-2024) ]
+where region = 'africa'
+order by price_usd desc
+),
+leastexp as
+(
+select top 1
+'least expensive' as category,
+year,model,price_usd
+from dbo.[BMW sales data (2010-2024) ]
+where region = 'africa'
+order by price_usd asc
+)
+select 'most expensive' as category,model,price_usd,year from mostexp
+union all
+select 'least expensive' as category,model,price_usd,year from leastexp
